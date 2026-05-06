@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/canciones")
 public class CancionController {
@@ -23,10 +24,21 @@ public class CancionController {
 	@GetMapping
 	public List<Cancion> listarCanciones(
 			@RequestParam(defaultValue="5") int limit,
-			@RequestParam(defaultValue="0") int page){
+			@RequestParam(defaultValue="0") int page,
+			@RequestParam(required = false) String titulo){
 		Pageable pageable = PageRequest.of(page, limit);
+		if (titulo != null && !titulo.trim().isEmpty()) {
+            return cancionRepo.findByTituloContainingIgnoreCase(titulo, pageable).getContent();
+		}
+		
 		return cancionRepo.findAll(pageable).getContent();
 	}
+	
+	@GetMapping("/random")
+    public List<Cancion> listarAleatorias(
+            @RequestParam(defaultValue = "6") int limit) {
+        return cancionRepo.findRandom(limit);
+    }
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Cancion> buscarPorId(@PathVariable Integer id){

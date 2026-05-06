@@ -1,6 +1,7 @@
 package com.musica.musica_api.repositories;
 
 import com.musica.musica_api.models.Artista;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
