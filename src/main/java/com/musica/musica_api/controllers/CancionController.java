@@ -46,5 +46,10 @@ public class CancionController {
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
+	
+	@GetMapping("/artista/{idArtista}")
+	public List<Cancion> listarCancionesPorArtista(@PathVariable Integer idArtista) {
+	    return cancionRepo.findByArtistaOrderByReproduccionesDesc(idArtista);
+	}
 
 }

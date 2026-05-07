@@ -24,10 +24,21 @@ public class AlbumController {
 	@GetMapping
 	public List<Album> listarAlbumes(
 			@RequestParam(defaultValue="5") int limit,
-			@RequestParam(defaultValue="0") int page){
+			@RequestParam(defaultValue="0") int page,
+			@RequestParam(required = false) String titulo){
 		Pageable pageable = PageRequest.of(page, limit);
+		if (titulo != null && !titulo.trim().isEmpty()) {
+            return albumRepo.findByTituloContainingIgnoreCase(titulo, pageable).getContent();
+		}
+		
 		return albumRepo.findAll(pageable).getContent();
 	}
+	
+	@GetMapping("/random")
+    public List<Album> listarAleatorios(
+            @RequestParam(defaultValue = "6") int limit) {
+        return albumRepo.findRandom(limit);
+    }
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Album> buscarPorId(@PathVariable Integer id){
