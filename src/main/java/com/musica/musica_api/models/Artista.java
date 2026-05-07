@@ -29,5 +29,6 @@ public class Artista {
     
     private String biografia;
     private String genero;
+    
 
 }
