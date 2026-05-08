@@ -24,4 +24,11 @@ public interface CancionRepo extends JpaRepository<Cancion, Integer> {
 		    nativeQuery = true
 	)
 	List<Cancion> findByArtistaOrderByReproduccionesDesc(@Param("idArtista") Integer idArtista);
+	
+	@Query(
+		    value = "SELECT * FROM canciones ORDER BY reproducciones DESC LIMIT ?1",
+		    nativeQuery = true
+		)
+		List<Cancion> findTopByReproducciones(int limit);
+	
 }

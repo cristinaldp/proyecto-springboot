@@ -35,8 +35,7 @@ public class CancionController {
 	}
 	
 	@GetMapping("/random")
-    public List<Cancion> listarAleatorias(
-            @RequestParam(defaultValue = "6") int limit) {
+    public List<Cancion> listarAleatorias(@RequestParam(defaultValue = "6") int limit) {
         return cancionRepo.findRandom(limit);
     }
 	
@@ -50,6 +49,11 @@ public class CancionController {
 	@GetMapping("/artista/{idArtista}")
 	public List<Cancion> listarCancionesPorArtista(@PathVariable Integer idArtista) {
 	    return cancionRepo.findByArtistaOrderByReproduccionesDesc(idArtista);
+	}
+	
+	@GetMapping("/top")
+	public List<Cancion> listarTopCanciones(@RequestParam(defaultValue = "5") int limit) {
+	    return cancionRepo.findTopByReproducciones(limit);
 	}
 
 }

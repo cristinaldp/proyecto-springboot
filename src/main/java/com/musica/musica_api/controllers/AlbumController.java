@@ -87,5 +87,20 @@ public class AlbumController {
                 nombreArtista
         );
     }
+	
+	@GetMapping("/novedades")
+	public List<AlbumDTO> listarNovedades(@RequestParam(defaultValue = "6") int limit) {
+
+	    List<Album> albumes = albumRepo.findNovedades(limit);
+
+	    List<AlbumDTO> albumesDTO = new ArrayList<>();
+
+	    for (Album album : albumes) {
+	        AlbumDTO albumDTO = convertirADTO(album);
+	        albumesDTO.add(albumDTO);
+	    }
+
+	    return albumesDTO;
+	}
 
 }

@@ -14,4 +14,7 @@ public interface AlbumRepo extends JpaRepository<Album, Integer> {
 	
 	@Query(value = "SELECT * FROM albumes ORDER BY RAND() LIMIT ?1", nativeQuery = true)
     List<Album> findRandom(int limit);
+	
+	@Query(value = "SELECT * FROM albumes ORDER BY ano DESC LIMIT ?1", nativeQuery = true)
+	List<Album> findNovedades(int limit);
 }
