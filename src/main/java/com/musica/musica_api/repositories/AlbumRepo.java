@@ -11,6 +11,7 @@ import java.util.List;
 public interface AlbumRepo extends JpaRepository<Album, Integer> {
 	
 	Page<Album> findByTituloContainingIgnoreCase(String titulo, Pageable pageable);
+	
 	@Query(value = "SELECT * FROM albumes ORDER BY RAND() LIMIT ?1", nativeQuery = true)
     List<Album> findRandom(int limit);
 }

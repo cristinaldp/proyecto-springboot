@@ -1,7 +1,6 @@
 package com.musica.musica_api.controllers;
 
 import com.musica.musica_api.models.Album;
-import com.musica.musica_api.models.Artista;
 import com.musica.musica_api.dto.AlbumDTO;
 import com.musica.musica_api.repositories.AlbumRepo;
 import com.musica.musica_api.repositories.ArtistaRepo;
@@ -12,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -43,16 +42,29 @@ public class AlbumController {
 			albumes = albumRepo.findAll(pageable).getContent();
 		}
 		
-		return albumes.stream()
-                .map(this::convertirADTO)
-                .collect(Collectors.toList());
+		List<AlbumDTO> albumesDTO = new ArrayList<>();
+
+		for (Album album : albumes) {
+		    AlbumDTO dto = convertirADTO(album);
+		    albumesDTO.add(dto);
+		}
+
+		return albumesDTO;
 	}
 	
 	@GetMapping("/random")
     public List<AlbumDTO> listarAleatorios(@RequestParam(defaultValue = "6") int limit) {
-        return albumRepo.findRandom(limit).stream()
-        		.map(this::convertirADTO)
-        		.collect(Collectors.toList());
+		
+		 List<Album> albumes = albumRepo.findRandom(limit);
+
+		 List<AlbumDTO> albumesDTO = new ArrayList<>();
+
+		 for (Album album : albumes) {
+		     AlbumDTO albumDTO = convertirADTO(album);
+		     albumesDTO.add(albumDTO);
+		 }
+
+		 return albumesDTO;
     }
 	
 	@GetMapping("/{id}")
