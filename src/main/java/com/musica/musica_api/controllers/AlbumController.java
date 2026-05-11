@@ -77,6 +77,21 @@ public class AlbumController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 	
+	@GetMapping("/genero/{idGenero}")
+	public List<AlbumDTO> listarAlbumesPorGenero(@PathVariable Integer idGenero) {
+
+	    List<Album> albumes = albumRepo.findByIdGenero(idGenero);
+
+	    List<AlbumDTO> albumesDTO = new ArrayList<>();
+
+	    for (Album album : albumes) {
+	        AlbumDTO albumDTO = convertirADTO(album);
+	        albumesDTO.add(albumDTO);
+	    }
+
+	    return albumesDTO;
+	}
+	
 	private AlbumDTO convertirADTO(Album album) {
         String nombreArtista = artistaRepo.findById(album.getIdArtista())
                 .map(artista -> artista.getNombre())

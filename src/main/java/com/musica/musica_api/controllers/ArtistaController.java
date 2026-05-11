@@ -48,5 +48,10 @@ public class ArtistaController {
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
+	
+	@GetMapping("/genero/{idGenero}")
+	public List<Artista> listarArtistasPorGenero(@PathVariable Integer idGenero) {
+	    return artistaRepo.findByGenero(idGenero);
+	}
 
 }
