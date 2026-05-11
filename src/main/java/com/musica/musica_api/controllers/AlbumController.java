@@ -4,6 +4,7 @@ import com.musica.musica_api.models.Album;
 import com.musica.musica_api.dto.AlbumDTO;
 import com.musica.musica_api.repositories.AlbumRepo;
 import com.musica.musica_api.repositories.ArtistaRepo;
+import com.musica.musica_api.repositories.GeneroRepo;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +22,12 @@ public class AlbumController {
 	
 	private final AlbumRepo albumRepo;
 	private final ArtistaRepo artistaRepo;
+	private final GeneroRepo generoRepo;
 	
-	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo) {
+	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo, GeneroRepo generoRepo) {
 		this.albumRepo=albumRepo;
 		this.artistaRepo = artistaRepo;
+		this.generoRepo = generoRepo;
 	}
 	
 	@GetMapping
@@ -79,12 +82,22 @@ public class AlbumController {
                 .map(artista -> artista.getNombre())
                 .orElse("Artista desconocido");
         
+        String nombreGenero = "Género desconocido";
+
+        if (album.getIdGenero() != null) {
+            nombreGenero = generoRepo.findById(album.getIdGenero())
+                    .map(genero -> genero.getNombre())
+                    .orElse("Género desconocido");
+        }
+        
         return new AlbumDTO(
                 album.getId(),
                 album.getTitulo(),
                 album.getAno(),
                 album.getIdArtista(),
-                nombreArtista
+                nombreArtista,
+                album.getIdGenero(),
+                nombreGenero
         );
     }
 	
