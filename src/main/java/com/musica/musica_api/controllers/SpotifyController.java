@@ -4,6 +4,9 @@ import com.musica.musica_api.services.SpotifyService;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/spotify")
@@ -16,10 +19,15 @@ public class SpotifyController {
     }
 
     @GetMapping("/album/url")
-    public String obtenerUrlAlbum(
+    public Map<String, String> obtenerUrlAlbum(
             @RequestParam String titulo,
             @RequestParam String artista) {
 
-        return spotifyService.obtenerUrlAlbumSpotify(titulo, artista);
+        String spotifyUrl = spotifyService.obtenerUrlAlbumSpotify(titulo, artista);
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("url", spotifyUrl);
+
+        return respuesta;
     }
 }

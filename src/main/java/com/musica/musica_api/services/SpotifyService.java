@@ -54,7 +54,9 @@ public class SpotifyService {
                 .fromUriString("https://api.spotify.com/v1/search")
                 .queryParam("q", busqueda)
                 .queryParam("type", "album")
-                .queryParam("limit", 1)
+                .queryParam("market", "ES")
+                .queryParam("limit", 10)
+                .encode()
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -70,16 +72,118 @@ public class SpotifyService {
         );
 
         Map body = response.getBody();
-        Map albums = (Map) body.get("albums");
-        List items = (List) albums.get("items");
 
-        if (items.isEmpty()) {
+        if (body == null) {
             return null;
         }
 
-        Map album = (Map) items.get(0);
-        Map externalUrls = (Map) album.get("external_urls");
+        Map albums = (Map) body.get("albums");
+        List items = (List) albums.get("items");
 
-        return (String) externalUrls.get("spotify");
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
+
+        String mejorUrl = null;
+        int mejorPuntuacion = 0;
+
+        for (Object item : items) {
+            Map album = (Map) item;
+
+            String nombreAlbumSpotify = (String) album.get("name");
+            String albumType = (String) album.get("album_type");
+            List artistas = (List) album.get("artists");
+
+            if (contienePalabraProhibida(nombreAlbumSpotify)) {
+                continue;
+            }
+
+            int puntuacion = 0;
+
+            String tituloBD = normalizar(tituloAlbum);
+            String tituloSpotify = normalizar(nombreAlbumSpotify);
+
+            if (tituloSpotify.equals(tituloBD)) {
+                puntuacion += 60;
+            } else if (tituloSpotify.contains(tituloBD) || tituloBD.contains(tituloSpotify)) {
+                puntuacion += 40;
+            }
+
+            if (contieneArtista(artistas, nombreArtista)) {
+                puntuacion += 40;
+            }
+
+            if ("album".equalsIgnoreCase(albumType)) {
+                puntuacion += 20;
+            }
+
+            if ("single".equalsIgnoreCase(albumType)) {
+                puntuacion += 5;
+            }
+
+            if (puntuacion > mejorPuntuacion) {
+                Map externalUrls = (Map) album.get("external_urls");
+
+                if (externalUrls != null) {
+                    mejorUrl = (String) externalUrls.get("spotify");
+                    mejorPuntuacion = puntuacion;
+                }
+            }
+        }
+
+        if (mejorPuntuacion >= 70) {
+            return mejorUrl;
+        }
+
+        return null;
+    }
+    
+    private String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .replaceAll("\\(.*?\\)", "")
+                .replaceAll("\\[.*?\\]", "")
+                .replaceAll("deluxe", "")
+                .replaceAll("edition", "")
+                .replaceAll("version", "")
+                .replaceAll("remastered", "")
+                .replaceAll("explicit", "")
+                .replaceAll("clean", "")
+                .replaceAll("[^a-z0-9 ]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+    
+    private boolean contieneArtista(List artistas, String nombreArtista) {
+        if (artistas == null) {
+            return false;
+        }
+
+        for (Object artistaObj : artistas) {
+            Map artista = (Map) artistaObj;
+            String nombreSpotify = (String) artista.get("name");
+
+            if (normalizar(nombreSpotify).equals(normalizar(nombreArtista))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    private boolean contienePalabraProhibida(String texto) {
+        String textoNormalizado = normalizar(texto);
+
+        return textoNormalizado.contains("karaoke")
+                || textoNormalizado.contains("tribute")
+                || textoNormalizado.contains("cover")
+                || textoNormalizado.contains("instrumental")
+                || textoNormalizado.contains("originally performed")
+                || textoNormalizado.contains("made famous by");
     }
 }

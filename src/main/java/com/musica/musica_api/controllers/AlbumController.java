@@ -108,8 +108,6 @@ public class AlbumController {
                     .orElse("Género desconocido");
         }
         
-        String spotifyUrl = spotifyService.obtenerUrlAlbumSpotify(album.getTitulo(), nombreArtista);
-        
         return new AlbumDTO(
                 album.getId(),
                 album.getTitulo(),
@@ -117,8 +115,7 @@ public class AlbumController {
                 album.getIdArtista(),
                 nombreArtista,
                 album.getIdGenero(),
-                nombreGenero,
-                spotifyUrl
+                nombreGenero
         );
     }
 	
