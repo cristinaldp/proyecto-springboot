@@ -19,8 +19,9 @@ public class AlbumDTO {
 	private String nombreArtista;
 	private Integer idGenero;
 	private String nombreGenero;
+	private String spotifyUrl;
 	
-	 public AlbumDTO(Integer id, String titulo, Date ano, Integer idArtista, String nombreArtista, Integer idGenero, String nombreGenero) {
+	 public AlbumDTO(Integer id, String titulo, Date ano, Integer idArtista, String nombreArtista, Integer idGenero, String nombreGenero, String spotifyUrl) {
 		this.id = id;
 		this.titulo = titulo;
 		this.ano = ano;
@@ -28,6 +29,7 @@ public class AlbumDTO {
 		this.nombreArtista = nombreArtista;
 		this.idGenero = idGenero;
         this.nombreGenero = nombreGenero;
+        this.spotifyUrl = spotifyUrl;
 	 }
 	 
 }

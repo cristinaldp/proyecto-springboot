@@ -5,6 +5,7 @@ import com.musica.musica_api.dto.AlbumDTO;
 import com.musica.musica_api.repositories.AlbumRepo;
 import com.musica.musica_api.repositories.ArtistaRepo;
 import com.musica.musica_api.repositories.GeneroRepo;
+import com.musica.musica_api.services.SpotifyService;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +24,13 @@ public class AlbumController {
 	private final AlbumRepo albumRepo;
 	private final ArtistaRepo artistaRepo;
 	private final GeneroRepo generoRepo;
+	private final SpotifyService spotifyService;
 	
-	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo, GeneroRepo generoRepo) {
-		this.albumRepo=albumRepo;
-		this.artistaRepo = artistaRepo;
-		this.generoRepo = generoRepo;
+	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo, GeneroRepo generoRepo, SpotifyService spotifyService) {
+	    this.albumRepo = albumRepo;
+	    this.artistaRepo = artistaRepo;
+	    this.generoRepo = generoRepo;
+	    this.spotifyService = spotifyService;
 	}
 	
 	@GetMapping
@@ -105,6 +108,8 @@ public class AlbumController {
                     .orElse("Género desconocido");
         }
         
+        String spotifyUrl = spotifyService.obtenerUrlAlbumSpotify(album.getTitulo(), nombreArtista);
+        
         return new AlbumDTO(
                 album.getId(),
                 album.getTitulo(),
@@ -112,7 +117,8 @@ public class AlbumController {
                 album.getIdArtista(),
                 nombreArtista,
                 album.getIdGenero(),
-                nombreGenero
+                nombreGenero,
+                spotifyUrl
         );
     }
 	
