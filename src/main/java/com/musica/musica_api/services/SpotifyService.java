@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.net.URI;
 
 @Service
 public class SpotifyService {
@@ -50,86 +51,131 @@ public class SpotifyService {
 
         String busqueda = tituloAlbum + " " + nombreArtista;
 
-        String url = UriComponentsBuilder
-                .fromUriString("https://api.spotify.com/v1/search")
-                .queryParam("q", busqueda)
-                .queryParam("type", "album")
-                .queryParam("market", "ES")
-                .queryParam("limit", 10)
-                .encode()
-                .toUriString();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-
-        HttpEntity<Void> request = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                request,
-                Map.class
-        );
-
-        Map body = response.getBody();
-
-        if (body == null) {
-            return null;
-        }
-
-        Map albums = (Map) body.get("albums");
-        List items = (List) albums.get("items");
-
-        if (items == null || items.isEmpty()) {
-            return null;
-        }
-
         String mejorUrl = null;
         int mejorPuntuacion = 0;
+        String fechaMejorResultado = null;
 
-        for (Object item : items) {
-            Map album = (Map) item;
+        int[] offsets = {0, 10};
 
-            String nombreAlbumSpotify = (String) album.get("name");
-            String albumType = (String) album.get("album_type");
-            List artistas = (List) album.get("artists");
+        for (int offset : offsets) {
 
-            if (contienePalabraProhibida(nombreAlbumSpotify)) {
+        	URI url = UriComponentsBuilder
+        	        .fromUriString("https://api.spotify.com/v1/search")
+        	        .queryParam("q", busqueda)
+        	        .queryParam("type", "album")
+        	        .queryParam("market", "ES")
+        	        .queryParam("limit", "10")
+        	        .queryParam("offset", "0")
+        	        .build()
+        	        .encode()
+        	        .toUri();
+
+            System.out.println("URL SPOTIFY: " + url);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.set("User-Agent", "PostmanRuntime/7.43.0");
+
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    request,
+                    Map.class
+            );
+            
+            System.out.println("RESPUESTA COMPLETA SPOTIFY:");
+            System.out.println(response.getBody());
+
+            Map body = response.getBody();
+
+            if (body == null) {
                 continue;
             }
 
-            int puntuacion = 0;
+            Map albums = (Map) body.get("albums");
 
-            String tituloBD = normalizar(tituloAlbum);
-            String tituloSpotify = normalizar(nombreAlbumSpotify);
-
-            if (tituloSpotify.equals(tituloBD)) {
-                puntuacion += 60;
-            } else if (tituloSpotify.contains(tituloBD) || tituloBD.contains(tituloSpotify)) {
-                puntuacion += 40;
+            if (albums == null) {
+                continue;
             }
 
-            if (contieneArtista(artistas, nombreArtista)) {
-                puntuacion += 40;
+            List items = (List) albums.get("items");
+
+            if (items == null || items.isEmpty()) {
+                continue;
             }
 
-            if ("album".equalsIgnoreCase(albumType)) {
-                puntuacion += 20;
-            }
+            for (Object item : items) {
+                Map album = (Map) item;
 
-            if ("single".equalsIgnoreCase(albumType)) {
-                puntuacion += 5;
-            }
+                String nombreAlbumSpotify = (String) album.get("name");
+                String albumType = (String) album.get("album_type");
+                String releaseDate = (String) album.get("release_date");
+                Integer totalTracks = (Integer) album.get("total_tracks");
+                List artistas = (List) album.get("artists");
 
-            if (puntuacion > mejorPuntuacion) {
+                System.out.println("----- SALIDA DE SPOTIFY -----");
+                System.out.println("Nombre: " + nombreAlbumSpotify);
+                System.out.println("Album type: " + albumType);
+                System.out.println("Release date: " + releaseDate);
+                System.out.println("Total tracks: " + totalTracks);
+
+                if (!"album".equalsIgnoreCase(albumType)) {
+                    System.out.println("DESCARTADO: no es album");
+                    continue;
+                }
+
+                if (contienePalabraProhibida(nombreAlbumSpotify)) {
+                    System.out.println("DESCARTADO: palabra prohibida");
+                    continue;
+                }
+
+                int puntuacion = 0;
+
+                String tituloBD = normalizar(tituloAlbum);
+                String tituloSpotify = normalizar(nombreAlbumSpotify);
+
+                if (tituloSpotify.equals(tituloBD)) {
+                    puntuacion += 60;
+                } else if (tituloSpotify.contains(tituloBD) || tituloBD.contains(tituloSpotify)) {
+                    puntuacion += 40;
+                }
+
+                if (contieneArtista(artistas, nombreArtista)) {
+                    puntuacion += 40;
+                }
+
+                System.out.println("Titulo BD normalizado: " + tituloBD);
+                System.out.println("Titulo Spotify normalizado: " + tituloSpotify);
+                System.out.println("Puntuacion: " + puntuacion);
+
                 Map externalUrls = (Map) album.get("external_urls");
 
-                if (externalUrls != null) {
-                    mejorUrl = (String) externalUrls.get("spotify");
+                if (externalUrls == null) {
+                    continue;
+                }
+
+                String spotifyUrl = (String) externalUrls.get("spotify");
+
+                if (spotifyUrl == null) {
+                    continue;
+                }
+
+                if (puntuacion > mejorPuntuacion) {
                     mejorPuntuacion = puntuacion;
+                    mejorUrl = spotifyUrl;
+                    fechaMejorResultado = releaseDate;
+                } else if (puntuacion == mejorPuntuacion && esFechaMasAntigua(releaseDate, fechaMejorResultado)) {
+                    mejorUrl = spotifyUrl;
+                    fechaMejorResultado = releaseDate;
                 }
             }
         }
+
+        System.out.println("MEJOR PUNTUACION FINAL: " + mejorPuntuacion);
+        System.out.println("MEJOR URL FINAL: " + mejorUrl);
 
         if (mejorPuntuacion >= 70) {
             return mejorUrl;
@@ -183,7 +229,18 @@ public class SpotifyService {
                 || textoNormalizado.contains("tribute")
                 || textoNormalizado.contains("cover")
                 || textoNormalizado.contains("instrumental")
-                || textoNormalizado.contains("originally performed")
-                || textoNormalizado.contains("made famous by");
+                || textoNormalizado.contains("originally performed");
+    }
+    
+    private boolean esFechaMasAntigua(String nuevaFecha, String fechaActual) {
+        if (nuevaFecha == null || nuevaFecha.isBlank()) {
+            return false;
+        }
+
+        if (fechaActual == null || fechaActual.isBlank()) {
+            return true;
+        }
+
+        return nuevaFecha.compareTo(fechaActual) < 0;
     }
 }
