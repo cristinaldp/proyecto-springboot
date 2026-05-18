@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 import java.io.IOException;
@@ -115,9 +114,6 @@ public class ArtistaController {
 	        }
 	    }
 
-	    return ResponseEntity.ok(
-	            "Imágenes importadas: " + importadas +
-	            ". Imágenes no encontradas: " + noEncontradas
-	    );
+	    return ResponseEntity.ok("Imágenes importadas: " + importadas + ". Imágenes no encontradas: " + noEncontradas);
 	}
 }

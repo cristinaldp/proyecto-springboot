@@ -5,14 +5,19 @@ import com.musica.musica_api.dto.AlbumDTO;
 import com.musica.musica_api.repositories.AlbumRepo;
 import com.musica.musica_api.repositories.ArtistaRepo;
 import com.musica.musica_api.repositories.GeneroRepo;
-import com.musica.musica_api.services.SpotifyService;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 @CrossOrigin(origins = "*")
@@ -24,13 +29,11 @@ public class AlbumController {
 	private final AlbumRepo albumRepo;
 	private final ArtistaRepo artistaRepo;
 	private final GeneroRepo generoRepo;
-	private final SpotifyService spotifyService;
 	
-	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo, GeneroRepo generoRepo, SpotifyService spotifyService) {
+	public AlbumController(AlbumRepo albumRepo, ArtistaRepo artistaRepo, GeneroRepo generoRepo) {
 	    this.albumRepo = albumRepo;
 	    this.artistaRepo = artistaRepo;
 	    this.generoRepo = generoRepo;
-	    this.spotifyService = spotifyService;
 	}
 	
 	@GetMapping
@@ -132,6 +135,63 @@ public class AlbumController {
 	    }
 
 	    return albumesDTO;
+	}
+	
+	@GetMapping("/{id}/imagen")
+	public ResponseEntity<byte[]> obtenerImagenAlbum(@PathVariable Integer id) {
+
+	    Optional<Album> albumOptional = albumRepo.findById(id);
+
+	    if (albumOptional.isEmpty()) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    Album album = albumOptional.get();
+
+	    if (album.getImagen() == null || album.getImagenTipo() == null) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    return ResponseEntity.ok()
+	            .contentType(MediaType.parseMediaType(album.getImagenTipo()))
+	            .body(album.getImagen());
+	}
+	
+	@PostMapping("/importar-imagenes")
+	public ResponseEntity<String> importarImagenesAlbumes() throws IOException {
+
+	    List<Album> albumes = albumRepo.findAll();
+
+	    int importadas = 0;
+	    int noEncontradas = 0;
+
+	    for (Album album : albumes) {
+
+	        Path rutaImagen = Paths.get(
+	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img1/" 
+	                + album.getId() 
+	                + ".jpg"
+	        );
+
+	        System.out.println("Buscando imagen en: " + rutaImagen.toAbsolutePath());
+
+	        if (Files.exists(rutaImagen)) {
+	            byte[] bytesImagen = Files.readAllBytes(rutaImagen);
+
+	            album.setImagen(bytesImagen);
+	            album.setImagenTipo("image/jpeg");
+
+	            albumRepo.save(album);
+
+	            importadas++;
+	            System.out.println("Imagen importada para album ID: " + album.getId());
+	        } else {
+	            noEncontradas++;
+	            System.out.println("NO encontrada imagen para album ID: " + album.getId());
+	        }
+	    }
+
+	    return ResponseEntity.ok("Imágenes importadas: " + importadas + ". Imágenes no encontradas: " + noEncontradas);
 	}
 
 }

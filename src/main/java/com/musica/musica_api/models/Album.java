@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+
 public class Album {
 
     @Id
@@ -27,4 +28,10 @@ public class Album {
     @Column(name = "id_genero")
     private Integer idGenero;
     
+    @Lob
+    @Column(name = "imagen")
+    private byte[] imagen;
+
+    @Column(name = "imagen_tipo")
+    private String imagenTipo;
 }
