@@ -1,11 +1,11 @@
 package com.musica.musica_api.controllers;
 
-import com.musica.musica_api.dto.CancionDTO;
 import com.musica.musica_api.dto.CancionUsuarioRequest;
 import com.musica.musica_api.models.Cancion;
 import com.musica.musica_api.models.CancionUsuario;
 import com.musica.musica_api.repositories.CancionRepo;
 import com.musica.musica_api.repositories.CancionUsuarioRepo;
+import com.musica.musica_api.dto.CancionUsuarioDTO;
 import com.musica.musica_api.services.YoutubeService;
 
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +38,11 @@ public class CancionUsuarioController {
     }
     
     @GetMapping("/usuario/{idUsuario}")
-    public List<CancionDTO> listarVistasPorUsuario(@PathVariable Integer idUsuario) {
+    public List<CancionUsuarioDTO> listarVistasPorUsuario(@PathVariable Integer idUsuario) {
 
         List<CancionUsuario> vistas = cancionUsuarioRepo.findTop10ByIdUsuarioOrderByFechaVistaDesc(idUsuario);
 
-        List<CancionDTO> canciones = new ArrayList<>();
+        List<CancionUsuarioDTO> canciones = new ArrayList<>();
 
         for (CancionUsuario vista : vistas) {
             Optional<Cancion> cancionOptional = cancionRepo.findById(vista.getIdCancion());
@@ -52,13 +52,14 @@ public class CancionUsuarioController {
 
                 String miniaturaUrl = youtubeService.obtenerMiniaturaDesdeUrl(cancion.getUrl());
 
-                CancionDTO dto = new CancionDTO(
+                CancionUsuarioDTO dto = new CancionUsuarioDTO(
                         cancion.getId(),
                         cancion.getTitulo(),
                         cancion.getDuracion(),
                         cancion.getReproducciones(),
                         cancion.getUrl(),
-                        miniaturaUrl
+                        miniaturaUrl,
+                        vista.getFechaVista()
                 );
 
                 canciones.add(dto);
