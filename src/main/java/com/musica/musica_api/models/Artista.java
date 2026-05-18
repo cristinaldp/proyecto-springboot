@@ -29,5 +29,12 @@ public class Artista {
     
     private String biografia;
     private String genero;
+    
+    @Lob
+    @Column(name = "imagen")
+    private byte[] imagen;
+
+    @Column(name = "imagen_tipo")
+    private String imagenTipo;
 
 }

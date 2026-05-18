@@ -7,7 +7,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
+import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -53,5 +60,64 @@ public class ArtistaController {
 	public List<Artista> listarArtistasPorGenero(@PathVariable Integer idGenero) {
 	    return artistaRepo.findByGenero(idGenero);
 	}
+	
+	@GetMapping("/{id}/imagen")
+	public ResponseEntity<byte[]> obtenerImagenArtista(@PathVariable Integer id) {
 
+	    Optional<Artista> artistaOptional = artistaRepo.findById(id);
+
+	    if (artistaOptional.isEmpty()) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    Artista artista = artistaOptional.get();
+
+	    if (artista.getImagen() == null || artista.getImagenTipo() == null) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    return ResponseEntity.ok()
+	            .contentType(MediaType.parseMediaType(artista.getImagenTipo()))
+	            .body(artista.getImagen());
+	}
+	
+	@PostMapping("/importar-imagenes")
+	public ResponseEntity<String> importarImagenesArtistas() throws IOException {
+
+	    List<Artista> artistas = artistaRepo.findAll();
+
+	    int importadas = 0;
+	    int noEncontradas = 0;
+
+	    for (Artista artista : artistas) {
+
+	        Path rutaImagen = Paths.get(
+	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img/" 
+	                + artista.getId() 
+	                + ".jpg"
+	        );
+
+	        System.out.println("Buscando imagen en: " + rutaImagen.toAbsolutePath());
+
+	        if (Files.exists(rutaImagen)) {
+	            byte[] bytesImagen = Files.readAllBytes(rutaImagen);
+
+	            artista.setImagen(bytesImagen);
+	            artista.setImagenTipo("image/jpeg");
+
+	            artistaRepo.save(artista);
+
+	            importadas++;
+	            System.out.println("Imagen importada para artista ID: " + artista.getId());
+	        } else {
+	            noEncontradas++;
+	            System.out.println("NO encontrada imagen para artista ID: " + artista.getId());
+	        }
+	    }
+
+	    return ResponseEntity.ok(
+	            "Imágenes importadas: " + importadas +
+	            ". Imágenes no encontradas: " + noEncontradas
+	    );
+	}
 }
