@@ -80,7 +80,7 @@ public class ArtistaController {
 	            .body(artista.getImagen());
 	}
 	
-	@PostMapping("/importar-imagenes")
+	/*@PostMapping("/importar-imagenes")
 	public ResponseEntity<String> importarImagenesArtistas() throws IOException {
 
 	    List<Artista> artistas = artistaRepo.findAll();
@@ -91,7 +91,7 @@ public class ArtistaController {
 	    for (Artista artista : artistas) {
 
 	        Path rutaImagen = Paths.get(
-	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img/" 
+	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img_backup/" 
 	                + artista.getId() 
 	                + ".jpg"
 	        );
@@ -115,5 +115,5 @@ public class ArtistaController {
 	    }
 
 	    return ResponseEntity.ok("Imágenes importadas: " + importadas + ". Imágenes no encontradas: " + noEncontradas);
-	}
+	}*/
 }

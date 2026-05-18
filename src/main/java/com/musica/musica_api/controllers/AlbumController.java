@@ -157,7 +157,7 @@ public class AlbumController {
 	            .body(album.getImagen());
 	}
 	
-	@PostMapping("/importar-imagenes")
+	/*@PostMapping("/importar-imagenes")
 	public ResponseEntity<String> importarImagenesAlbumes() throws IOException {
 
 	    List<Album> albumes = albumRepo.findAll();
@@ -168,7 +168,7 @@ public class AlbumController {
 	    for (Album album : albumes) {
 
 	        Path rutaImagen = Paths.get(
-	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img1/" 
+	                "C:/Users/crish/Desktop/Prácticas/proyecto-angular/img1_backup/" 
 	                + album.getId() 
 	                + ".jpg"
 	        );
@@ -192,6 +192,6 @@ public class AlbumController {
 	    }
 
 	    return ResponseEntity.ok("Imágenes importadas: " + importadas + ". Imágenes no encontradas: " + noEncontradas);
-	}
+	}*/
 
 }
