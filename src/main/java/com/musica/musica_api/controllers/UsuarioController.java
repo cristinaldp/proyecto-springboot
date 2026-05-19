@@ -82,6 +82,11 @@ public class UsuarioController {
             respuesta.put("mensaje", "Ya existe un usuario con ese nickname");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(respuesta);
         }
+        
+        if (registroRequest.getContrasena().length() < 6) {
+            respuesta.put("mensaje", "La contraseña debe tener al menos 6 caracteres");
+            return ResponseEntity.badRequest().body(respuesta);
+        }
 
         Usuario nuevoUsuario = new Usuario();
         nuevoUsuario.setEmail(registroRequest.getEmail());
