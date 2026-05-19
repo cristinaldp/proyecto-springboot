@@ -1,6 +1,7 @@
 package com.musica.musica_api.controllers;
 
 import com.musica.musica_api.dto.LoginRequest;
+import com.musica.musica_api.dto.RegistroRequest;
 import com.musica.musica_api.models.Usuario;
 import com.musica.musica_api.repositories.UsuarioRepo;
 
@@ -57,5 +58,45 @@ public class UsuarioController {
             respuesta.put("mensaje", "Inicio de sesión no válido");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(respuesta);
         }
+    }
+    
+    @PostMapping("/registro")
+    public ResponseEntity<Map<String, Object>> registrarUsuario(@RequestBody RegistroRequest registroRequest) {
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        if (registroRequest.getEmail() == null || registroRequest.getEmail().isBlank()
+                || registroRequest.getNickname() == null || registroRequest.getNickname().isBlank()
+                || registroRequest.getContrasena() == null || registroRequest.getContrasena().isBlank()) {
+
+            respuesta.put("mensaje", "Todos los campos son obligatorios");
+            return ResponseEntity.badRequest().body(respuesta);
+        }
+
+        if (usuarioRepo.existsByEmail(registroRequest.getEmail())) {
+            respuesta.put("mensaje", "Ya existe un usuario con ese email");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(respuesta);
+        }
+
+        if (usuarioRepo.existsByNickname(registroRequest.getNickname())) {
+            respuesta.put("mensaje", "Ya existe un usuario con ese nickname");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(respuesta);
+        }
+
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setEmail(registroRequest.getEmail());
+        nuevoUsuario.setNickname(registroRequest.getNickname());
+        nuevoUsuario.setContrasena(registroRequest.getContrasena());
+        nuevoUsuario.setRol("Usuario");
+
+        Usuario usuarioGuardado = usuarioRepo.save(nuevoUsuario);
+
+        respuesta.put("mensaje", "Usuario registrado correctamente");
+        respuesta.put("id", usuarioGuardado.getId());
+        respuesta.put("nickname", usuarioGuardado.getNickname());
+        respuesta.put("email", usuarioGuardado.getEmail());
+        respuesta.put("rol", usuarioGuardado.getRol());
+
+        return ResponseEntity.ok(respuesta);
     }
 }
